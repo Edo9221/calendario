@@ -1,38 +1,745 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="it">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2685.4">
-  <style type="text/css">
-    body {background-color: #0d0d10}
-    p.p2 {margin: 0.0px 0.0px 24.0px 0.0px; font: 11.4px 'Helvetica Neue'; color: #696772; -webkit-text-stroke: #696772}
-    p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; font: 11.4px 'Helvetica Neue'; color: #e2e0da; -webkit-text-stroke: #e2e0da; background-color: #0d0d10; min-height: 13.0px}
-    p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; text-align: center; font: 11.4px 'Helvetica Neue'; color: #0d0d10; -webkit-text-stroke: #0d0d10; background-color: #e19839}
-    p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; font: 10.8px 'Helvetica Neue'; color: #696772; -webkit-text-stroke: #696772; background-color: #111216}
-    li.li3 {margin: 0.0px 0.0px 4.0px 0.0px; font: 10.8px 'Helvetica Neue'; color: #696772; -webkit-text-stroke: #696772}
-    span.s1 {font-kerning: none; background-color: #111216}
-    span.s2 {font-kerning: none}
-    span.s3 {font: 10.2px Menlo; font-kerning: none; color: #e19839; background-color: #0d0d10; -webkit-text-stroke: 0px #e19839}
-    span.s4 {background-color: #111216; -webkit-text-stroke: 0px #000000}
-    span.s5 {font: 10.8px '.Apple Color Emoji UI'; font-kerning: none}
-    ol.ol1 {list-style-type: decimal}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Calendario</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f13;
+    --surface: #16171d;
+    --surface-hover: #1e1f27;
+    --border: #2a2b35;
+    --text: #e8e6e1;
+    --text-muted: #7c7b85;
+    --accent: #e8a849;
+    --accent-soft: rgba(232, 168, 73, 0.12);
+    --accent-glow: rgba(232, 168, 73, 0.25);
+    --past: #4a4952;
+    --danger: #e85d5d;
+    --success: #5de88a;
+    --radius: 14px;
+    --font-body: 'DM Sans', sans-serif;
+    --font-display: 'Playfair Display', serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -40%; left: -20%;
+    width: 80vw; height: 80vw;
+    background: radial-gradient(circle, rgba(232,168,73,0.06) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* --- Setup overlay --- */
+  .setup-overlay {
+    position: fixed; inset: 0;
+    background: rgba(14,15,19,0.92);
+    backdrop-filter: blur(20px);
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    animation: fadeIn 0.4s ease;
+  }
+  .setup-overlay.hidden { display: none; }
+
+  .setup-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px;
+    max-width: 600px;
+    width: 90%;
+  }
+  .setup-card h2 {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    color: var(--accent);
+  }
+  .setup-card p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+  .setup-card code {
+    background: var(--bg);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .setup-card ol {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.8;
+    margin-bottom: 28px;
+    padding-left: 20px;
+  }
+  .setup-card ol li { margin-bottom: 4px; }
+
+  .setup-input-group {
+    display: flex; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .setup-input-group input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .setup-input-group input:focus { border-color: var(--accent); }
+  .setup-input-group input::placeholder { color: var(--text-muted); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 10px;
+    padding: 14px 28px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s;
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px var(--accent-glow);
+  }
+
+  .btn-demo {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    width: 100%;
+    margin-top: 4px;
+  }
+  .btn-demo:hover { color: var(--text); border-color: var(--text-muted); }
+
+  .setup-error {
+    color: var(--danger);
+    font-size: 0.85rem;
+    margin-top: 8px;
+    display: none;
+  }
+
+  /* --- Main layout --- */
+  .app { position: relative; z-index: 1; }
+
+  header {
+    padding: 40px 40px 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .logo-area h1 {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .logo-area h1 span { color: var(--accent); }
+  .logo-area .subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-top: 4px;
+  }
+
+  .header-actions { display: flex; gap: 10px; align-items: center; }
+  .btn-icon {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    font-size: 1.1rem;
+  }
+  .btn-icon:hover { color: var(--accent); border-color: var(--accent); }
+
+  .stats-bar {
+    display: flex; gap: 12px;
+    padding: 24px 40px 0;
+    flex-wrap: wrap;
+  }
+  .stat-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .stat-chip .num { font-weight: 700; color: var(--text); font-size: 1.1rem; }
+  .stat-chip.accent .num { color: var(--accent); }
+
+  /* --- Timeline --- */
+  .timeline-container { padding: 32px 40px 60px; }
+
+  .timeline-group {
+    margin-bottom: 36px;
+    animation: slideUp 0.5s ease both;
+  }
+  .timeline-group:nth-child(2) { animation-delay: 0.06s; }
+  .timeline-group:nth-child(3) { animation-delay: 0.12s; }
+  .timeline-group:nth-child(4) { animation-delay: 0.18s; }
+  .timeline-group:nth-child(5) { animation-delay: 0.24s; }
+
+  .date-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 14px;
+  }
+  .date-badge { min-width: 56px; text-align: center; }
+  .date-badge .day-num {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .date-badge .day-name {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .date-line { flex: 1; height: 1px; background: var(--border); }
+  .date-label { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+
+  .timeline-group.is-today .date-badge .day-num { color: var(--accent); }
+  .timeline-group.is-today .date-line { background: var(--accent-soft); height: 2px; }
+  .timeline-group.is-today .date-label {
+    color: var(--accent); font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; font-size: 0.72rem;
+  }
+  .timeline-group.is-past .date-badge .day-num { color: var(--past); }
+  .timeline-group.is-past .event-card { opacity: 0.5; }
+
+  .events-list {
+    padding-left: 28px;
+    border-left: 2px solid var(--border);
+    margin-left: 27px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .timeline-group.is-today .events-list { border-left-color: var(--accent); }
+
+  .event-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    display: flex; align-items: flex-start; gap: 16px;
+    transition: all 0.2s;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+  }
+  .event-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: 4px 0 0 4px;
+  }
+  .event-card:hover {
+    background: var(--surface-hover);
+    border-color: var(--accent);
+    transform: translateX(4px);
+  }
+
+  .event-time {
+    min-width: 60px; font-size: 0.85rem;
+    font-weight: 700; color: var(--accent); padding-top: 2px;
+  }
+  .event-body { flex: 1; }
+  .event-title { font-weight: 600; font-size: 1rem; margin-bottom: 4px; }
+  .event-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+  .event-location {
+    font-size: 0.78rem; color: var(--text-muted);
+    margin-top: 6px; display: flex; align-items: center; gap: 4px;
+  }
+  .event-location::before { content: '📍'; font-size: 0.7rem; }
+
+  .event-card[data-cat="lavoro"]::before { background: #5b8dee; }
+  .event-card[data-cat="personale"]::before { background: #e85d5d; }
+  .event-card[data-cat="meeting"]::before { background: #5de88a; }
+  .event-card[data-cat="altro"]::before { background: #a78bfa; }
+  .event-card::before { background: var(--accent); }
+
+  .empty-state { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.4; }
+  .empty-state h3 { font-family: var(--font-display); font-size: 1.4rem; color: var(--text); margin-bottom: 8px; }
+
+  .loading { text-align: center; padding: 100px 20px; }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  .filter-bar {
+    padding: 20px 40px 0;
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  }
+  .filter-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 7px 16px;
+    font-size: 0.82rem;
+    font-family: var(--font-body);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-chip:hover, .filter-chip.active {
+    color: var(--accent); border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .filter-chip.active { font-weight: 600; }
+
+  /* Auto-refresh indicator */
+  .refresh-indicator {
+    position: fixed;
+    bottom: 16px; right: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    z-index: 100;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .refresh-dot {
+    width: 6px; height: 6px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  @media (max-width: 640px) {
+    header, .stats-bar, .timeline-container, .filter-bar { padding-left: 20px; padding-right: 20px; }
+    .logo-area h1 { font-size: 1.6rem; }
+    .setup-card { padding: 28px; }
+    .setup-input-group { flex-direction: column; }
+    .event-card { flex-direction: column; gap: 6px; }
+    .event-time { min-width: auto; }
+  }
+</style>
 </head>
 <body>
-<h2 style="margin: 0.0px 0.0px 8.0px 0.0px; font: 21.6px 'Helvetica Neue'; color: #e19839; -webkit-text-stroke: #e19839"><span class="s1">Configura il tuo foglio</span></h2>
-<p class="p2"><span class="s1">Crea un Google Sheet con queste colonne nella prima riga:</span><span class="s2"><br>
-</span><span class="s3">Data</span><span class="s1"> · </span><span class="s3">Ora</span><span class="s1"> · </span><span class="s3">Titolo</span><span class="s1"> · </span><span class="s3">Descrizione</span><span class="s1"> · </span><span class="s3">Luogo</span><span class="s1"> · </span><span class="s3">Categoria</span></p>
-<ol class="ol1">
-  <li class="li3"><span class="s4"></span><span class="s1">Apri il foglio Google Sheets</span></li>
-  <li class="li3"><span class="s4"></span><span class="s1">Vai su File → Condividi → Pubblica sul web</span></li>
-  <li class="li3"><span class="s4"></span><span class="s1">Scegli Foglio 1 e formato CSV</span></li>
-  <li class="li3"><span class="s4"></span><span class="s1">Clicca Pubblica e copia il link</span></li>
-</ol>
-<p class="p4"><span class="s2"></span><br></p>
-<p class="p5"><span class="s2">Connetti</span></p>
-<p class="p6"><span class="s5">🎯</span><span class="s2"> Prova con dati demo</span></p>
+
+<!-- Setup Overlay -->
+<div class="setup-overlay" id="setupOverlay">
+  <div class="setup-card">
+    <h2>Configura il tuo foglio</h2>
+    <p>
+      Crea un Google Sheet con queste colonne nella prima riga:<br>
+      <code>Data</code> · <code>Ora</code> · <code>Titolo</code> · <code>Descrizione</code> · <code>Luogo</code> · <code>Categoria</code>
+    </p>
+    <ol>
+      <li>Apri il foglio Google Sheets</li>
+      <li>Vai su <strong>File → Condividi → Pubblica sul web</strong></li>
+      <li>Scegli <strong>Foglio 1</strong> e formato <strong>CSV</strong></li>
+      <li>Clicca <strong>Pubblica</strong> e copia il link</li>
+    </ol>
+    <div class="setup-input-group">
+      <input type="text" id="sheetUrl" placeholder="Incolla qui il link CSV del tuo foglio...">
+      <button class="btn-primary" onclick="connectSheet()">Connetti</button>
+    </div>
+    <div class="setup-error" id="setupError">Link non valido. Assicurati di aver pubblicato il foglio come CSV.</div>
+    <button class="btn-demo" onclick="loadDemo()">🎯 Prova con dati demo</button>
+  </div>
+</div>
+
+<!-- App -->
+<div class="app" id="app" style="display:none">
+  <header>
+    <div class="logo-area">
+      <h1>I miei <span>eventi</span></h1>
+      <div class="subtitle" id="subtitleDate"></div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" onclick="refreshData()" title="Aggiorna dati">⟳</button>
+      <button class="btn-icon" onclick="resetSheet()" title="Cambia foglio">⚙</button>
+    </div>
+  </header>
+
+  <div class="stats-bar" id="statsBar"></div>
+  <div class="filter-bar" id="filterBar"></div>
+
+  <div class="timeline-container" id="timeline">
+    <div class="loading">
+      <div class="spinner"></div>
+      <div style="color:var(--text-muted);font-size:0.9rem">Caricamento eventi...</div>
+    </div>
+  </div>
+
+  <div class="refresh-indicator">
+    <div class="refresh-dot"></div>
+    Auto-refresh ogni 5 min
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // ⚙️ CONFIGURAZIONE — Incolla qui il tuo link CSV di Google Sheets
+  // ============================================================
+  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ14lO-sEw4T2QK3TvJz-RkVMlyXPIrYpsBUIXderOMpp4xLPv4hfY0GUODJSYdNwTVoXO9TMxuF6IS/pub?gid=0&single=true&output=csv';
+  // ============================================================
+
+  // ---- State ----
+  let allEvents = [];
+  let activeFilter = 'tutti';
+  let autoRefreshTimer = null;
+
+  // ---- Setup ----
+  function connectSheet() {
+    // Non più necessario con URL hardcoded, ma mantenuto come fallback
+    const url = document.getElementById('sheetUrl').value.trim();
+    if (!url || (!url.includes('docs.google.com') && !url.includes('output=csv'))) {
+      document.getElementById('setupError').style.display = 'block';
+      return;
+    }
+    currentSheetUrl = url;
+    showApp();
+  }
+
+  let currentSheetUrl = SHEET_URL;
+
+  function loadDemo() {
+    allEvents = generateDemoEvents();
+    showApp(true);
+  }
+
+  function showApp(isDemo) {
+    document.getElementById('setupOverlay').classList.add('hidden');
+    document.getElementById('app').style.display = '';
+    updateSubtitle();
+    if (isDemo) {
+      renderAll();
+    } else {
+      fetchData();
+      startAutoRefresh();
+    }
+  }
+
+  function resetSheet() {
+    if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+    currentSheetUrl = '';
+    location.reload();
+  }
+
+  function startAutoRefresh() {
+    if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+    autoRefreshTimer = setInterval(() => {
+      fetchData();
+    }, 5 * 60 * 1000);
+  }
+
+  // ---- Init ----
+  (function init() {
+    // Check URL parameter first, then hardcoded config
+    const params = new URLSearchParams(window.location.search);
+    const sheetParam = params.get('sheet');
+    if (sheetParam) {
+      currentSheetUrl = sheetParam;
+    }
+
+    // If we have a valid URL (hardcoded or param), skip setup entirely
+    if (currentSheetUrl && currentSheetUrl !== 'INCOLLA_QUI_IL_TUO_LINK_CSV') {
+      showApp();
+    }
+    // Otherwise show setup screen (for first-time or demo)
+  })();
+
+  // ---- Fetch ----
+  async function fetchData() {
+    const url = currentSheetUrl;
+    if (!url) return;
+    const timeline = document.getElementById('timeline');
+
+    // Show loading only on first load
+    if (!allEvents.length) {
+      timeline.innerHTML = '<div class="loading"><div class="spinner"></div><div style="color:var(--text-muted);font-size:0.9rem">Caricamento eventi...</div></div>';
+    }
+
+    try {
+      const res = await fetch(url);
+      const text = await res.text();
+      allEvents = parseCSV(text);
+      renderAll();
+    } catch (e) {
+      if (!allEvents.length) {
+        timeline.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>Errore di caricamento</h3><p>Controlla che il foglio sia pubblicato correttamente come CSV.</p></div>';
+      }
+    }
+  }
+
+  function refreshData() {
+    fetchData();
+  }
+
+  // ---- Parse CSV ----
+  function parseCSV(text) {
+    const lines = text.split('\n').filter(l => l.trim());
+    if (lines.length < 2) return [];
+    const headers = splitCSVLine(lines[0]).map(h => h.trim().toLowerCase());
+    const colMap = {
+      data: headers.findIndex(h => h.includes('data') || h.includes('date')),
+      ora: headers.findIndex(h => h.includes('ora') || h.includes('time') || h.includes('orario')),
+      titolo: headers.findIndex(h => h.includes('titol') || h.includes('title') || h.includes('evento')),
+      descrizione: headers.findIndex(h => h.includes('descri') || h.includes('note') || h.includes('desc')),
+      luogo: headers.findIndex(h => h.includes('luog') || h.includes('location') || h.includes('dove') || h.includes('place')),
+      categoria: headers.findIndex(h => h.includes('categ') || h.includes('tipo') || h.includes('type') || h.includes('cat')),
+    };
+    const events = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = splitCSVLine(lines[i]);
+      const raw = col => (cols[colMap[col]] || '').trim();
+      const dateStr = raw('data');
+      if (!dateStr) continue;
+      const parsed = parseDate(dateStr);
+      if (!parsed) continue;
+      events.push({
+        date: parsed,
+        time: raw('ora') || '',
+        title: raw('titolo') || 'Senza titolo',
+        desc: raw('descrizione') || '',
+        location: raw('luogo') || '',
+        category: (raw('categoria') || 'altro').toLowerCase(),
+      });
+    }
+    events.sort((a, b) => {
+      const d = a.date - b.date;
+      return d !== 0 ? d : a.time.localeCompare(b.time);
+    });
+    return events;
+  }
+
+  function splitCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQuotes = !inQuotes; }
+      else if (ch === ',' && !inQuotes) { result.push(current); current = ''; }
+      else { current += ch; }
+    }
+    result.push(current);
+    return result;
+  }
+
+  function parseDate(str) {
+    let m;
+    if ((m = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/))) {
+      return new Date(+m[3], +m[2] - 1, +m[1]);
+    }
+    if ((m = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/))) {
+      return new Date(+m[1], +m[2] - 1, +m[3]);
+    }
+    const d = new Date(str);
+    return isNaN(d) ? null : d;
+  }
+
+  // ---- Render ----
+  function renderAll() {
+    renderStats();
+    renderFilters();
+    renderTimeline();
+  }
+
+  function renderStats() {
+    const now = new Date(); now.setHours(0,0,0,0);
+    const total = allEvents.length;
+    const upcoming = allEvents.filter(e => e.date >= now).length;
+    const thisWeek = allEvents.filter(e => {
+      const diff = (e.date - now) / 86400000;
+      return diff >= 0 && diff < 7;
+    }).length;
+    document.getElementById('statsBar').innerHTML = `
+      <div class="stat-chip"><span class="num">${total}</span> totali</div>
+      <div class="stat-chip accent"><span class="num">${upcoming}</span> futuri</div>
+      <div class="stat-chip"><span class="num">${thisWeek}</span> questa settimana</div>
+    `;
+  }
+
+  function renderFilters() {
+    const cats = ['tutti', ...new Set(allEvents.map(e => e.category))];
+    document.getElementById('filterBar').innerHTML = cats.map(c =>
+      `<button class="filter-chip ${c === activeFilter ? 'active' : ''}" onclick="setFilter('${c}')">${c.charAt(0).toUpperCase() + c.slice(1)}</button>`
+    ).join('');
+  }
+
+  function setFilter(cat) {
+    activeFilter = cat;
+    renderFilters();
+    renderTimeline();
+  }
+
+  function renderTimeline() {
+    const container = document.getElementById('timeline');
+    const now = new Date(); now.setHours(0,0,0,0);
+    let events = allEvents;
+    if (activeFilter !== 'tutti') events = events.filter(e => e.category === activeFilter);
+
+    if (!events.length) {
+      container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><h3>Nessun evento</h3><p>Aggiungi eventi al tuo Google Sheet e premi ⟳ per aggiornare.</p></div>';
+      return;
+    }
+
+    const grouped = {};
+    events.forEach(e => {
+      const key = e.date.toISOString().slice(0, 10);
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(e);
+    });
+
+    const dayNames = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
+    const monthNames = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+
+    let html = '';
+    Object.keys(grouped).sort().forEach(dateKey => {
+      const d = new Date(dateKey + 'T00:00:00');
+      const isToday = d.getTime() === now.getTime();
+      const isPast = d < now;
+      const stateClass = isToday ? 'is-today' : isPast ? 'is-past' : '';
+      const label = isToday ? 'Oggi' : isPast ? 'Passato' : formatRelative(d, now);
+
+      html += `<div class="timeline-group ${stateClass}">`;
+      html += `<div class="date-header">
+        <div class="date-badge">
+          <div class="day-name">${dayNames[d.getDay()]}</div>
+          <div class="day-num">${d.getDate()}</div>
+        </div>
+        <div class="date-line"></div>
+        <div class="date-label">${monthNames[d.getMonth()]} ${d.getFullYear()} · ${label}</div>
+      </div>`;
+
+      html += '<div class="events-list">';
+      grouped[dateKey].forEach(ev => {
+        html += `<div class="event-card" data-cat="${ev.category}">
+          <div class="event-time">${ev.time || '—'}</div>
+          <div class="event-body">
+            <div class="event-title">${esc(ev.title)}</div>
+            ${ev.desc ? `<div class="event-desc">${esc(ev.desc)}</div>` : ''}
+            ${ev.location ? `<div class="event-location">${esc(ev.location)}</div>` : ''}
+          </div>
+        </div>`;
+      });
+      html += '</div></div>';
+    });
+
+    container.innerHTML = html;
+  }
+
+  function formatRelative(d, now) {
+    const diff = Math.round((d - now) / 86400000);
+    if (diff === 1) return 'Domani';
+    if (diff === -1) return 'Ieri';
+    if (diff > 1 && diff <= 7) return `Tra ${diff} giorni`;
+    if (diff < -1 && diff >= -7) return `${Math.abs(diff)} giorni fa`;
+    return '';
+  }
+
+  function esc(s) {
+    const el = document.createElement('span');
+    el.textContent = s;
+    return el.innerHTML;
+  }
+
+  function updateSubtitle() {
+    const now = new Date();
+    const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+    document.getElementById('subtitleDate').textContent = now.toLocaleDateString('it-IT', opts);
+  }
+
+  // ---- Demo data ----
+  function generateDemoEvents() {
+    const now = new Date();
+    const events = [];
+    const titles = [
+      { t: 'Standup team', d: 'Sync giornaliero con il team di sviluppo', c: 'meeting', l: 'Google Meet' },
+      { t: 'Review progetto Alpha', d: 'Analisi avanzamento milestone Q1', c: 'lavoro', l: 'Sala Riunioni B' },
+      { t: 'Pranzo con Marco', d: '', c: 'personale', l: 'Trattoria da Gino' },
+      { t: 'Call cliente Rossi', d: 'Presentazione proposta commerciale', c: 'meeting', l: 'Zoom' },
+      { t: 'Dentista', d: 'Controllo semestrale', c: 'personale', l: 'Studio Dr. Bianchi' },
+      { t: 'Workshop design system', d: 'Allineamento componenti UI', c: 'lavoro', l: 'Figma + Meet' },
+      { t: 'Planning sprint', d: 'Definizione task sprint 14', c: 'meeting', l: 'Ufficio' },
+      { t: 'Colloquio candidato FE', d: 'Frontend developer senior', c: 'lavoro', l: 'Google Meet' },
+      { t: 'Aperitivo team', d: 'Festeggiamo il rilascio v2.0!', c: 'personale', l: 'Bar Magenta' },
+      { t: 'Demo stakeholder', d: 'Presentazione nuove feature', c: 'meeting', l: 'Teams' },
+      { t: 'Formazione sicurezza', d: 'Corso obbligatorio annuale', c: 'altro', l: 'Aula 3' },
+      { t: '1:1 con Sara', d: 'Feedback trimestrale', c: 'meeting', l: 'Ufficio' },
+    ];
+    const times = ['09:00', '09:30', '10:00', '11:00', '12:30', '14:00', '15:00', '16:30', '17:00', '18:30'];
+    for (let i = -3; i <= 14; i++) {
+      const d = new Date(now); d.setDate(d.getDate() + i); d.setHours(0,0,0,0);
+      const count = Math.random() < 0.15 ? 0 : Math.random() < 0.5 ? 1 : Math.random() < 0.8 ? 2 : 3;
+      const usedIdx = new Set();
+      for (let j = 0; j < count; j++) {
+        let idx;
+        do { idx = Math.floor(Math.random() * titles.length); } while (usedIdx.has(idx));
+        usedIdx.add(idx);
+        const ev = titles[idx];
+        events.push({
+          date: new Date(d),
+          time: times[Math.floor(Math.random() * times.length)],
+          title: ev.t, desc: ev.d, location: ev.l, category: ev.c,
+        });
+      }
+    }
+    events.sort((a, b) => { const dd = a.date - b.date; return dd !== 0 ? dd : a.time.localeCompare(b.time); });
+    return events;
+  }
+</script>
 </body>
 </html>
